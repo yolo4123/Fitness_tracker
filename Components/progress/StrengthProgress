@@ -1,0 +1,179 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, TrendingUp, Calendar } from "lucide-react";
+import { format } from "date-fns";
+
+const recordTypeLabels = {
+  max_weight: "Max Weight",
+  max_reps: "Max Reps", 
+  max_distance: "Max Distance",
+  best_time: "Best Time"
+};
+
+export default function StrengthProgress({ workouts, personalRecords, isLoading }) {
+  const getExerciseProgress = () => {
+    const exerciseData = {};
+    
+    workouts.forEach(workout => {
+      workout.exercises?.forEach(exercise => {
+        if (!exerciseData[exercise.name]) {
+          exerciseData[exercise.name] = {
+            sessions: [],
+            maxWeight: 0,
+            totalVolume: 0
+          };
+        }
+        
+        const totalVolume = exercise.sets?.reduce((sum, set) => 
+          sum + ((set.weight || 0) * (set.reps || 0)), 0) || 0;
+        
+        const maxWeight = exercise.sets?.reduce((max, set) => 
+          Math.max(max, set.weight || 0), 0) || 0;
+        
+        exerciseData[exercise.name].sessions.push({
+          date: workout.date,
+          volume: totalVolume,
+          maxWeight: maxWeight
+        });
+        
+        exerciseData[exercise.name].maxWeight = Math.max(
+          exerciseData[exercise.name].maxWeight, 
+          maxWeight
+        );
+        exerciseData[exercise.name].totalVolume += totalVolume;
+      });
+    });
+    
+    return Object.entries(exerciseData)
+      .map(([name, data]) => ({
+        name,
+        ...data,
+        sessions: data.sessions.length
+      }))
+      .sort((a, b) => b.totalVolume - a.totalVolume)
+      .slice(0, 10);
+  };
+
+  const exerciseProgress = getExerciseProgress();
+
+  if (isLoading) {
+    return (
+      <Card className="workout-card border-0">
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 bg-slate-100 animate-pulse rounded"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Personal Records */}
+      <Card className="workout-card border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-yellow-600" />
+            Personal Records ({personalRecords.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {personalRecords.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {personalRecords.map((pr) => (
+                <div key={pr.id} className="pr-shine rounded-xl p-4 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-white text-lg">
+                      {pr.exercise_name}
+                    </h3>
+                    <Badge className="bg-white/20 text-white border-white/30">
+                      {recordTypeLabels[pr.record_type]}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-white">
+                      {pr.value} {pr.record_type === 'max_weight' ? 'kg' : 
+                                pr.record_type === 'max_distance' ? 'm' :
+                                pr.record_type === 'best_time' ? 's' : ''}
+                    </span>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 text-white/90 text-sm">
+                        <Calendar className="w-4 h-4" />
+                        {format(new Date(pr.date_achieved), "MMM d, yyyy")}
+                      </div>
+                      {pr.previous_record && (
+                        <div className="flex items-center gap-1 text-white/80 text-sm mt-1">
+                          <TrendingUp className="w-4 h-4" />
+                          +{(pr.value - pr.previous_record).toFixed(1)} improvement
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-500">
+              <Trophy className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+              <p className="font-medium text-lg">No personal records yet</p>
+              <p className="text-slate-400">Keep pushing your limits to set new PRs!</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Exercise Volume Leaders */}
+      <Card className="workout-card border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+            Top Exercises by Volume
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {exerciseProgress.length > 0 ? (
+            <div className="space-y-3">
+              {exerciseProgress.map((exercise, index) => (
+                <div 
+                  key={exercise.name} 
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200/50"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="font-bold text-blue-600 text-sm">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">
+                        {exercise.name}
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        {exercise.sessions} sessions • Max: {exercise.maxWeight}kg
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-slate-900">
+                      {exercise.totalVolume.toLocaleString()} kg
+                    </p>
+                    <p className="text-sm text-slate-600">total volume</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-500">
+              <TrendingUp className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+              <p className="font-medium text-lg">No exercise data available</p>
+              <p className="text-slate-400">Start logging workouts to see your progress</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

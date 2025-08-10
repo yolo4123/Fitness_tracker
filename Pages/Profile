@@ -1,0 +1,108 @@
+import React, { useState, useEffect } from "react";
+import { User, BodyMeasurement } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User as UserIcon, Target, TrendingUp } from "lucide-react";
+
+import ProfileInfo from "../components/profile/ProfileInfo";
+import MeasurementForm from "../components/profile/MeasurementForm";
+import GoalsSettings from "../components/profile/GoalsSettings";
+
+export default function Profile() {
+  const [user, setUser] = useState(null);
+  const [measurements, setMeasurements] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    setIsLoading(true);
+    try {
+      const [userData, measurementData] = await Promise.all([
+        User.me(),
+        BodyMeasurement.list('-date', 10)
+      ]);
+      
+      setUser(userData);
+      setMeasurements(measurementData);
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+    }
+    setIsLoading(false);
+  };
+
+  const handleMeasurementSaved = () => {
+    loadProfileData();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="h-64 bg-slate-100 animate-pulse rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+            Profile & Settings
+          </h1>
+          <p className="text-slate-600 text-lg">
+            Manage your fitness profile and track your progress
+          </p>
+        </div>
+
+        {/* Profile Tabs */}
+        <Tabs defaultValue="info" className="space-y-6">
+          <TabsList className="grid w-full lg:w-auto grid-cols-3 bg-white border border-slate-200">
+            <TabsTrigger 
+              value="info" 
+              className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+            >
+              <UserIcon className="w-4 h-4" />
+              Profile Info
+            </TabsTrigger>
+            <TabsTrigger 
+              value="measurements" 
+              className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+            >
+              <TrendingUp className="w-4 h-4" />
+              Measurements
+            </TabsTrigger>
+            <TabsTrigger 
+              value="goals" 
+              className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+            >
+              <Target className="w-4 h-4" />
+              Goals
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="info">
+            <ProfileInfo user={user} onUpdate={setUser} />
+          </TabsContent>
+
+          <TabsContent value="measurements">
+            <MeasurementForm 
+              latestMeasurement={measurements[0]} 
+              onSave={handleMeasurementSaved} 
+            />
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <GoalsSettings user={user} onUpdate={setUser} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

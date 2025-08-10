@@ -1,0 +1,239 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
+import { Activity, Clock, Flame, Target } from "lucide-react";
+import { format, startOfMonth, subMonths, eachMonthOfInterval } from "date-fns";
+
+const categoryColors = {
+  chest: "#ef4444",
+  back: "#3b82f6", 
+  shoulders: "#eab308",
+  arms: "#22c55e",
+  legs: "#a855f7",
+  core: "#f97316",
+  cardio: "#ec4899",
+  functional: "#6366f1"
+};
+
+export default function WorkoutAnalytics({ workouts, isLoading }) {
+  const getMonthlyData = () => {
+    const months = eachMonthOfInterval({
+      start: subMonths(new Date(), 5),
+      end: new Date()
+    });
+
+    return months.map(month => {
+      const monthWorkouts = workouts.filter(w => {
+        const workoutDate = new Date(w.date);
+        return workoutDate.getMonth() === month.getMonth() && 
+               workoutDate.getFullYear() === month.getFullYear();
+      });
+
+      return {
+        month: format(month, "MMM"),
+        workouts: monthWorkouts.length,
+        totalDuration: monthWorkouts.reduce((sum, w) => sum + (w.duration_minutes || 0), 0),
+        avgDuration: monthWorkouts.length > 0 
+          ? monthWorkouts.reduce((sum, w) => sum + (w.duration_minutes || 0), 0) / monthWorkouts.length 
+          : 0,
+        calories: monthWorkouts.reduce((sum, w) => sum + (w.calories_burned || 0), 0)
+      };
+    });
+  };
+
+  const getCategoryData = () => {
+    const categoryCount = {};
+    
+    workouts.forEach(workout => {
+      workout.exercises?.forEach(exercise => {
+        categoryCount[exercise.category] = (categoryCount[exercise.category] || 0) + 1;
+      });
+    });
+
+    return Object.entries(categoryCount).map(([category, count]) => ({
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      value: count,
+      color: categoryColors[category] || "#64748b"
+    }));
+  };
+
+  const monthlyData = getMonthlyData();
+  const categoryData = getCategoryData();
+
+  if (isLoading) {
+    return (
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="workout-card border-0">
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 bg-slate-100 animate-pulse rounded"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid md:grid-cols-4 gap-4">
+        <Card className="workout-card border-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Total Workouts</p>
+                <p className="text-2xl font-bold">{workouts.length}</p>
+              </div>
+              <Activity className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="workout-card border-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Total Hours</p>
+                <p className="text-2xl font-bold">
+                  {Math.round(workouts.reduce((sum, w) => sum + (w.duration_minutes || 0), 0) / 60)}
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="workout-card border-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Calories Burned</p>
+                <p className="text-2xl font-bold">
+                  {workouts.reduce((sum, w) => sum + (w.calories_burned || 0), 0).toLocaleString()}
+                </p>
+              </div>
+              <Flame className="w-8 h-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="workout-card border-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Avg Difficulty</p>
+                <p className="text-2xl font-bold">
+                  {workouts.length > 0 
+                    ? (workouts.reduce((sum, w) => sum + (w.difficulty_rating || 0), 0) / workouts.length).toFixed(1)
+                    : 0
+                  }
+                </p>
+              </div>
+              <Target className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Monthly Progress */}
+        <Card className="workout-card border-0">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-600" />
+              Monthly Workout Volume
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Bar 
+                  dataKey="workouts" 
+                  fill="#3b82f6"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Exercise Category Distribution */}
+        <Card className="workout-card border-0">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-green-600" />
+              Exercise Categories
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {categoryData.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: item.color }}
+                  ></div>
+                  <span className="text-sm text-slate-600">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,52 @@
+{
+  "name": "BodyMeasurement",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of measurement"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Body weight in kg"
+    },
+    "body_fat_percentage": {
+      "type": "number",
+      "description": "Body fat percentage"
+    },
+    "muscle_mass": {
+      "type": "number",
+      "description": "Muscle mass in kg"
+    },
+    "measurements": {
+      "type": "object",
+      "description": "Body measurements in cm",
+      "properties": {
+        "chest": {
+          "type": "number"
+        },
+        "waist": {
+          "type": "number"
+        },
+        "hips": {
+          "type": "number"
+        },
+        "bicep": {
+          "type": "number"
+        },
+        "thigh": {
+          "type": "number"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "date",
+    "weight"
+  ]
+}

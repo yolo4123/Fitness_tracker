@@ -1,0 +1,43 @@
+{
+  "name": "PersonalRecord",
+  "type": "object",
+  "properties": {
+    "exercise_name": {
+      "type": "string",
+      "description": "Name of the exercise"
+    },
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "max_weight",
+        "max_reps",
+        "max_distance",
+        "best_time"
+      ],
+      "description": "Type of personal record"
+    },
+    "value": {
+      "type": "number",
+      "description": "The record value"
+    },
+    "date_achieved": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the record was achieved"
+    },
+    "previous_record": {
+      "type": "number",
+      "description": "Previous record value"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about achieving this record"
+    }
+  },
+  "required": [
+    "exercise_name",
+    "record_type",
+    "value",
+    "date_achieved"
+  ]
+}

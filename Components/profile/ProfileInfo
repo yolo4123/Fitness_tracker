@@ -1,0 +1,140 @@
+import React, { useState } from "react";
+import { User } from "@/entities/User";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Save, User as UserIcon } from "lucide-react";
+
+export default function ProfileInfo({ user, onUpdate }) {
+  const [formData, setFormData] = useState({
+    full_name: user?.full_name || "",
+    age: user?.age || "",
+    height: user?.height || "",
+    fitness_level: user?.fitness_level || "intermediate",
+    primary_goal: user?.primary_goal || ""
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await User.updateMyUserData(formData);
+      const updatedUser = await User.me();
+      onUpdate(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+    setIsSaving(false);
+  };
+
+  const updateFormData = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <Card className="workout-card border-0">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-slate-900">
+          <UserIcon className="w-5 h-5 text-blue-600" />
+          Personal Information
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="full_name" className="text-slate-700 font-medium">
+                Full Name
+              </Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => updateFormData('full_name', e.target.value)}
+                className="border-slate-200 focus:border-blue-500"
+                placeholder="Your full name"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="age" className="text-slate-700 font-medium">
+                Age
+              </Label>
+              <Input
+                id="age"
+                type="number"
+                min="16"
+                max="100"
+                value={formData.age}
+                onChange={(e) => updateFormData('age', parseInt(e.target.value) || "")}
+                className="border-slate-200 focus:border-blue-500"
+                placeholder="25"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="height" className="text-slate-700 font-medium">
+                Height (cm)
+              </Label>
+              <Input
+                id="height"
+                type="number"
+                min="100"
+                max="250"
+                value={formData.height}
+                onChange={(e) => updateFormData('height', parseInt(e.target.value) || "")}
+                className="border-slate-200 focus:border-blue-500"
+                placeholder="175"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fitness_level" className="text-slate-700 font-medium">
+                Fitness Level
+              </Label>
+              <select
+                id="fitness_level"
+                value={formData.fitness_level}
+                onChange={(e) => updateFormData('fitness_level', e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="primary_goal" className="text-slate-700 font-medium">
+                Primary Fitness Goal
+              </Label>
+              <Input
+                id="primary_goal"
+                value={formData.primary_goal}
+                onChange={(e) => updateFormData('primary_goal', e.target.value)}
+                className="border-slate-200 focus:border-blue-500"
+                placeholder="e.g., Build muscle, Lose weight, Get stronger"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="fitness-gradient px-6 gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

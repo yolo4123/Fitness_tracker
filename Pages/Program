@@ -1,0 +1,173 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Calendar, 
+  Clock, 
+  Target, 
+  Dumbbell,
+  Plus,
+  PlayCircle
+} from "lucide-react";
+
+const samplePrograms = [
+  {
+    name: "Push Pull Legs Split",
+    description: "6-day intermediate program focusing on pushing, pulling, and leg movements",
+    duration: "6 weeks",
+    difficulty: "Intermediate",
+    frequency: "6 days/week",
+    workouts: [
+      { name: "Push Day", exercises: ["Bench Press", "Overhead Press", "Dips", "Lateral Raises"] },
+      { name: "Pull Day", exercises: ["Pull-ups", "Barbell Rows", "Deadlifts", "Bicep Curls"] },
+      { name: "Leg Day", exercises: ["Squats", "Romanian Deadlift", "Leg Press", "Calf Raises"] }
+    ]
+  },
+  {
+    name: "Upper Lower Split",
+    description: "4-day program alternating between upper and lower body training",
+    duration: "8 weeks",
+    difficulty: "Beginner",
+    frequency: "4 days/week",
+    workouts: [
+      { name: "Upper Body", exercises: ["Bench Press", "Pull-ups", "Shoulder Press", "Rows"] },
+      { name: "Lower Body", exercises: ["Squats", "Deadlifts", "Lunges", "Leg Curls"] }
+    ]
+  },
+  {
+    name: "Full Body Strength",
+    description: "3-day full body program for building overall strength",
+    duration: "12 weeks",
+    difficulty: "Intermediate",
+    frequency: "3 days/week",
+    workouts: [
+      { name: "Full Body A", exercises: ["Squats", "Bench Press", "Rows", "Planks"] },
+      { name: "Full Body B", exercises: ["Deadlifts", "Overhead Press", "Pull-ups", "Lunges"] },
+      { name: "Full Body C", exercises: ["Romanian Deadlift", "Incline Press", "Lat Pulldowns", "Dips"] }
+    ]
+  }
+];
+
+export default function Programs() {
+  return (
+    <div className="p-6 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">
+            Workout Programs
+          </h1>
+          <p className="text-slate-600 text-lg">
+            Structured training plans to reach your fitness goals
+          </p>
+        </div>
+        <Button className="fitness-gradient gap-2" size="lg">
+          <Plus className="w-5 h-5" />
+          Create Custom Program
+        </Button>
+      </div>
+
+      {/* Program Cards */}
+      <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        {samplePrograms.map((program, index) => (
+          <Card key={index} className="workout-card border-0 group hover:shadow-xl transition-all duration-300">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between mb-3">
+                <CardTitle className="text-xl text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {program.name}
+                </CardTitle>
+                <Badge 
+                  variant="outline"
+                  className={`${
+                    program.difficulty === 'Beginner' ? 'border-green-200 text-green-800' :
+                    program.difficulty === 'Intermediate' ? 'border-blue-200 text-blue-800' :
+                    'border-red-200 text-red-800'
+                  }`}
+                >
+                  {program.difficulty}
+                </Badge>
+              </div>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                {program.description}
+              </p>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              {/* Program Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-600">{program.duration}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-600">{program.frequency}</span>
+                </div>
+              </div>
+
+              {/* Sample Workouts */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-slate-900 flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Workout Types
+                </h4>
+                <div className="space-y-2">
+                  {program.workouts.slice(0, 2).map((workout, idx) => (
+                    <div key={idx} className="p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg">
+                      <p className="font-medium text-slate-900 mb-1">{workout.name}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {workout.exercises.slice(0, 3).map((exercise, exerciseIdx) => (
+                          <Badge key={exerciseIdx} variant="outline" className="text-xs">
+                            {exercise}
+                          </Badge>
+                        ))}
+                        {workout.exercises.length > 3 && (
+                          <Badge variant="outline" className="text-xs text-slate-500">
+                            +{workout.exercises.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {program.workouts.length > 2 && (
+                    <p className="text-xs text-slate-500 text-center">
+                      +{program.workouts.length - 2} more workout types
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <Button 
+                className="w-full fitness-gradient group-hover:shadow-lg transition-all duration-300 mt-6"
+                size="lg"
+              >
+                <PlayCircle className="w-4 h-4 mr-2" />
+                Start Program
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Custom Program Builder Preview */}
+      <Card className="workout-card border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardContent className="p-8 text-center">
+          <div className="max-w-md mx-auto">
+            <Dumbbell className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+            <h3 className="text-2xl font-bold text-slate-900 mb-3">
+              Create Your Own Program
+            </h3>
+            <p className="text-slate-600 mb-6">
+              Build a custom workout program tailored to your specific goals, schedule, and preferences.
+            </p>
+            <Button size="lg" className="fitness-gradient px-8">
+              Get Started
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

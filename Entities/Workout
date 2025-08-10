@@ -1,0 +1,79 @@
+{
+  "name": "Workout",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the workout session"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the workout"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duration of workout in minutes"
+    },
+    "exercises": {
+      "type": "array",
+      "description": "List of exercises performed",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "chest",
+              "back",
+              "shoulders",
+              "arms",
+              "legs",
+              "core",
+              "cardio",
+              "functional"
+            ]
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reps": {
+                  "type": "number"
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "rest_seconds": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the workout"
+    },
+    "calories_burned": {
+      "type": "number",
+      "description": "Estimated calories burned"
+    },
+    "difficulty_rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Subjective difficulty rating"
+    }
+  },
+  "required": [
+    "name",
+    "date"
+  ]
+}

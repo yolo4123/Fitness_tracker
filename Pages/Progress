@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from "react";
+import { Workout, BodyMeasurement, PersonalRecord } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  TrendingUp, 
+  Activity, 
+  Weight, 
+  Trophy,
+  Calendar
+} from "lucide-react";
+
+import WorkoutAnalytics from "../components/progress/WorkoutAnalytics";
+import BodyComposition from "../components/progress/BodyComposition";
+import StrengthProgress from "../components/progress/StrengthProgress";
+
+export default function Progress() {
+  const [workouts, setWorkouts] = useState([]);
+  const [measurements, setMeasurements] = useState([]);
+  const [personalRecords, setPersonalRecords] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProgressData();
+  }, []);
+
+  const loadProgressData = async () => {
+    setIsLoading(true);
+    try {
+      const [workoutData, measurementData, prData] = await Promise.all([
+        Workout.list('-date'),
+        BodyMeasurement.list('-date'),
+        PersonalRecord.list('-date_achieved')
+      ]);
+      
+      setWorkouts(workoutData);
+      setMeasurements(measurementData);
+      setPersonalRecords(prData);
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="p-6 lg:p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-900 mb-2">
+          Progress Analytics
+        </h1>
+        <p className="text-slate-600 text-lg">
+          Track your fitness journey with detailed insights
+        </p>
+      </div>
+
+      {/* Progress Tabs */}
+      <Tabs defaultValue="workouts" className="space-y-6">
+        <TabsList className="grid w-full lg:w-auto grid-cols-3 lg:grid-cols-3 bg-white border border-slate-200">
+          <TabsTrigger 
+            value="workouts" 
+            className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+          >
+            <Activity className="w-4 h-4" />
+            Workouts
+          </TabsTrigger>
+          <TabsTrigger 
+            value="body" 
+            className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+          >
+            <Weight className="w-4 h-4" />
+            Body Composition
+          </TabsTrigger>
+          <TabsTrigger 
+            value="strength" 
+            className="flex items-center gap-2 data-[state=active]:fitness-gradient data-[state=active]:text-white"
+          >
+            <Trophy className="w-4 h-4" />
+            Strength
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="workouts">
+          <WorkoutAnalytics workouts={workouts} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="body">
+          <BodyComposition measurements={measurements} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="strength">
+          <StrengthProgress 
+            workouts={workouts} 
+            personalRecords={personalRecords} 
+            isLoading={isLoading} 
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

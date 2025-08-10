@@ -1,0 +1,176 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Search, X, Dumbbell } from "lucide-react";
+
+const exercises = [
+  // Chest
+  { name: "Bench Press", category: "chest", description: "Classic compound chest exercise" },
+  { name: "Incline Dumbbell Press", category: "chest", description: "Upper chest focus" },
+  { name: "Push-ups", category: "chest", description: "Bodyweight chest exercise" },
+  { name: "Dumbbell Flyes", category: "chest", description: "Chest isolation exercise" },
+  { name: "Dips", category: "chest", description: "Compound chest and tricep exercise" },
+  
+  // Back
+  { name: "Deadlift", category: "back", description: "Compound posterior chain exercise" },
+  { name: "Pull-ups", category: "back", description: "Bodyweight back exercise" },
+  { name: "Barbell Rows", category: "back", description: "Horizontal pulling movement" },
+  { name: "Lat Pulldowns", category: "back", description: "Vertical pulling exercise" },
+  { name: "T-Bar Rows", category: "back", description: "Mid-back focused exercise" },
+  
+  // Shoulders
+  { name: "Overhead Press", category: "shoulders", description: "Compound shoulder exercise" },
+  { name: "Lateral Raises", category: "shoulders", description: "Shoulder isolation" },
+  { name: "Front Raises", category: "shoulders", description: "Anterior deltoid focus" },
+  { name: "Rear Delt Flyes", category: "shoulders", description: "Posterior deltoid isolation" },
+  { name: "Arnold Press", category: "shoulders", description: "Full shoulder development" },
+  
+  // Arms
+  { name: "Bicep Curls", category: "arms", description: "Basic bicep exercise" },
+  { name: "Tricep Dips", category: "arms", description: "Tricep isolation" },
+  { name: "Hammer Curls", category: "arms", description: "Neutral grip bicep exercise" },
+  { name: "Tricep Extensions", category: "arms", description: "Overhead tricep exercise" },
+  { name: "Close-Grip Bench Press", category: "arms", description: "Tricep focused pressing" },
+  
+  // Legs
+  { name: "Squats", category: "legs", description: "Fundamental leg exercise" },
+  { name: "Bulgarian Split Squats", category: "legs", description: "Single-leg squat variation" },
+  { name: "Romanian Deadlift", category: "legs", description: "Hamstring and glute focus" },
+  { name: "Leg Press", category: "legs", description: "Machine-based leg exercise" },
+  { name: "Walking Lunges", category: "legs", description: "Functional leg movement" },
+  { name: "Calf Raises", category: "legs", description: "Calf muscle isolation" },
+  
+  // Core
+  { name: "Plank", category: "core", description: "Isometric core exercise" },
+  { name: "Russian Twists", category: "core", description: "Rotational core movement" },
+  { name: "Dead Bug", category: "core", description: "Anti-extension core exercise" },
+  { name: "Mountain Climbers", category: "core", description: "Dynamic core exercise" },
+  { name: "Leg Raises", category: "core", description: "Lower ab focused exercise" },
+  
+  // Cardio
+  { name: "Treadmill Run", category: "cardio", description: "Steady-state cardio" },
+  { name: "Rowing Machine", category: "cardio", description: "Full-body cardio" },
+  { name: "Burpees", category: "cardio", description: "High-intensity bodyweight exercise" },
+  { name: "Jump Rope", category: "cardio", description: "Coordination and cardio" },
+  { name: "Cycling", category: "cardio", description: "Low-impact cardio option" },
+  
+  // Functional
+  { name: "Kettlebell Swings", category: "functional", description: "Hip-hinge power movement" },
+  { name: "Turkish Get-ups", category: "functional", description: "Full-body stability exercise" },
+  { name: "Bear Crawl", category: "functional", description: "Quadruped movement pattern" },
+  { name: "Box Jumps", category: "functional", description: "Plyometric leg exercise" },
+  { name: "Farmer's Walk", category: "functional", description: "Loaded carry exercise" }
+];
+
+const categoryColors = {
+  chest: "bg-red-100 text-red-800 border-red-200",
+  back: "bg-blue-100 text-blue-800 border-blue-200", 
+  shoulders: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  arms: "bg-green-100 text-green-800 border-green-200",
+  legs: "bg-purple-100 text-purple-800 border-purple-200",
+  core: "bg-orange-100 text-orange-800 border-orange-200",
+  cardio: "bg-pink-100 text-pink-800 border-pink-200",
+  functional: "bg-indigo-100 text-indigo-800 border-indigo-200"
+};
+
+export default function ExerciseLibrary({ onSelectExercise, onClose }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const categories = ["all", "chest", "back", "shoulders", "arms", "legs", "core", "cardio", "functional"];
+
+  const filteredExercises = exercises.filter(exercise => {
+    const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || exercise.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <Card className="workout-card border-0 max-h-[80vh] flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between border-b">
+        <CardTitle className="flex items-center gap-2 text-slate-900">
+          <Dumbbell className="w-5 h-5 text-blue-600" />
+          Exercise Library
+        </CardTitle>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="w-4 h-4" />
+        </Button>
+      </CardHeader>
+      
+      <CardContent className="flex flex-col flex-1 overflow-hidden">
+        {/* Search and Filter */}
+        <div className="space-y-4 py-4 border-b">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-slate-200 focus:border-blue-500"
+            />
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className={selectedCategory === category ? "fitness-gradient" : ""}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Exercise List */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-2">
+          {filteredExercises.map((exercise, index) => (
+            <div
+              key={index}
+              onClick={() => onSelectExercise(exercise)}
+              className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200/50 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-slate-900">
+                      {exercise.name}
+                    </h3>
+                    <Badge 
+                      className={`${categoryColors[exercise.category]} border text-xs`}
+                    >
+                      {exercise.category}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    {exercise.description}
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  className="fitness-gradient ml-4"
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+          ))}
+          
+          {filteredExercises.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              <Dumbbell className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <p className="font-medium">No exercises found</p>
+              <p className="text-sm">Try adjusting your search or filter</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

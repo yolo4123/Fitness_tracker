@@ -1,0 +1,211 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer
+} from "recharts";
+import { Weight, TrendingUp, TrendingDown } from "lucide-react";
+import { format } from "date-fns";
+
+export default function BodyComposition({ measurements, isLoading }) {
+  const getWeightData = () => {
+    return measurements
+      .slice(0, 20)
+      .reverse()
+      .map(m => ({
+        date: format(new Date(m.date), "MMM d"),
+        weight: m.weight,
+        bodyFat: m.body_fat_percentage,
+        muscleMass: m.muscle_mass
+      }));
+  };
+
+  const weightData = getWeightData();
+  const latestMeasurement = measurements[0];
+  const previousMeasurement = measurements[1];
+
+  const getWeightChange = () => {
+    if (!latestMeasurement || !previousMeasurement) return null;
+    return latestMeasurement.weight - previousMeasurement.weight;
+  };
+
+  const weightChange = getWeightChange();
+
+  if (isLoading) {
+    return (
+      <Card className="workout-card border-0">
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 bg-slate-100 animate-pulse rounded"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className="workout-card border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Current Weight</p>
+                <p className="text-3xl font-bold">
+                  {latestMeasurement?.weight?.toFixed(1) || 0} kg
+                </p>
+                {weightChange && (
+                  <div className={`flex items-center gap-1 mt-2 ${
+                    weightChange > 0 ? 'text-orange-600' : 'text-green-600'
+                  }`}>
+                    {weightChange > 0 ? 
+                      <TrendingUp className="w-4 h-4" /> : 
+                      <TrendingDown className="w-4 h-4" />
+                    }
+                    <span className="text-sm font-medium">
+                      {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg
+                    </span>
+                  </div>
+                )}
+              </div>
+              <Weight className="w-10 h-10 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="workout-card border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Body Fat %</p>
+                <p className="text-3xl font-bold">
+                  {latestMeasurement?.body_fat_percentage?.toFixed(1) || 0}%
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                <span className="text-orange-600 font-bold">%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="workout-card border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Muscle Mass</p>
+                <p className="text-3xl font-bold">
+                  {latestMeasurement?.muscle_mass?.toFixed(1) || 0} kg
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-green-600 font-bold text-lg">💪</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weight Progress Chart */}
+      <Card className="workout-card border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-600" />
+            Weight Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {weightData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={weightData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="weight" 
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Weight (kg)"
+                />
+                {weightData.some(d => d.bodyFat) && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="bodyFat" 
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                    name="Body Fat %"
+                  />
+                )}
+                {weightData.some(d => d.muscleMass) && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="muscleMass" 
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                    name="Muscle Mass (kg)"
+                  />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-96 text-slate-500">
+              <div className="text-center">
+                <Weight className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p className="font-medium">No body composition data available</p>
+                <p className="text-sm text-slate-400">Add measurements to track your progress</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Body Measurements */}
+      {latestMeasurement?.measurements && (
+        <Card className="workout-card border-0">
+          <CardHeader>
+            <CardTitle>Latest Measurements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-5 gap-4">
+              {Object.entries(latestMeasurement.measurements).map(([part, measurement]) => (
+                <div key={part} className="text-center p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl">
+                  <p className="text-sm text-slate-600 capitalize mb-1">{part}</p>
+                  <p className="text-xl font-bold text-slate-900">{measurement} cm</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

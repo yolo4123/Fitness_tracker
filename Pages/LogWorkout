@@ -1,0 +1,82 @@
+import React, { useState } from "react";
+import { Workout } from "@/entities/Workout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+import WorkoutForm from "../components/workout/WorkoutForm";
+import ExerciseLibrary from "../components/workout/ExerciseLibrary";
+
+export default function LogWorkout() {
+  const navigate = useNavigate();
+  const [currentWorkout, setCurrentWorkout] = useState({
+    name: "",
+    date: new Date().toISOString().split('T')[0],
+    duration_minutes: 0,
+    exercises: [],
+    notes: "",
+    calories_burned: 0,
+    difficulty_rating: 5
+  });
+  const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveWorkout = async (workoutData) => {
+    setIsSaving(true);
+    try {
+      await Workout.create(workoutData);
+      navigate(createPageUrl("Dashboard"));
+    } catch (error) {
+      console.error("Error saving workout:", error);
+    }
+    setIsSaving(false);
+  };
+
+  const addExercise = (exercise) => {
+    setCurrentWorkout(prev => ({
+      ...prev,
+      exercises: [...prev.exercises, {
+        ...exercise,
+        sets: [{ reps: 0, weight: 0, rest_seconds: 60 }]
+      }]
+    }));
+    setShowExerciseLibrary(false);
+  };
+
+  return (
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate(createPageUrl("Dashboard"))}
+          className="hover:bg-slate-50"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Log New Workout</h1>
+          <p className="text-slate-600 mt-1">Track your training session</p>
+        </div>
+      </div>
+
+      {showExerciseLibrary ? (
+        <ExerciseLibrary 
+          onSelectExercise={addExercise}
+          onClose={() => setShowExerciseLibrary(false)}
+        />
+      ) : (
+        <WorkoutForm
+          workout={currentWorkout}
+          onWorkoutChange={setCurrentWorkout}
+          onSave={handleSaveWorkout}
+          onShowExerciseLibrary={() => setShowExerciseLibrary(true)}
+          isSaving={isSaving}
+        />
+      )}
+    </div>
+  );
+}
